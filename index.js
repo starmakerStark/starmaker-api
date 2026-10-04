@@ -16,7 +16,6 @@ app.get('/api/lookup', async (req, res) => {
     const response = await fetch(`https://starmaker.id.vn/wp-json/sm-user/v1/lookup?sid=${sid}`);
     const result = await response.json();
 
-    // Screenshot ke mutabiq exact keys extract kar rahe hain
     const userData = result?.data?.user || {};
     const familyData = result?.data?.family || {};
 
@@ -24,14 +23,14 @@ app.get('/api/lookup', async (req, res) => {
       success: true,
       user_id: sid,
       name: userData.name || "N/A",
-      stage_name: userData.stage_name || "N/A",
-      country: familyData.country || userData.country || "Not Available",
-      last_update: userData.updated_date || userData.created_on || "N/A",
+      // Yahan hum multiple possibilities check kar rahe hain country ke liye
+      country: userData.country || userData.region || familyData.country || "Not Found in API",
+      // Last update ke liye updated_date ya timestamp ki field
+      last_update: userData.updated_date || userData.last_update || userData.rts || "Not Found in API",
       family_info: {
         family_id: familyData.id || "N/A",
         family_name: familyData.name || "N/A",
-        family_country: familyData.country || "N/A",
-        family_created_date: familyData.created_date || "N/A"
+        family_country: familyData.country || "N/A"
       },
       raw_data: result
     });
