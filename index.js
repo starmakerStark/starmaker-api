@@ -8,8 +8,8 @@ app.use(express.json());
 app.get('/api/user', async (req, res) => {
     const id = req.query.id;
 
-    if (!id || !/^\d+$/.test(id)) {
-        return res.status(400).json({ error: 'Valid numeric ID required' });
+    if (!id) {
+        return res.status(400).json({ error: 'ID is required' });
     }
 
     const ts = Math.floor(Date.now() / 1000);
@@ -31,13 +31,8 @@ app.get('/api/user', async (req, res) => {
         });
 
         const data = await response.json();
-        
-        // Render ke Logs me poora response print hoga taaki aap fields check kar sakein
-        console.log("API Response Data:", JSON.stringify(data, null, 2));
-
-        res.status(response.status).json(data);
+        res.status(200).json(data);
     } catch (error) {
-        console.error('Fetch Error:', error);
         res.status(500).json({ error: 'Failed to fetch data', details: error.message });
     }
 });
