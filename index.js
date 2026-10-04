@@ -5,55 +5,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Main user detail route
-app.get('/api/user', async (req, res) => {
-    const id = req.query.id;
-    
-    if (!id) {
-        return res.status(400).json({ 
-            status: false, 
-            message: "Please provide a valid user id using ?id=YOUR_ID" 
-        });
-    }
+app.get('/api/lookup', async (req, res) => {
+  const sid = req.query.sid;
 
-    try {
-        const timestamp = Date.now();
-        // Updated secure endpoint structure
-        const targetUrl = `https://www.starmakerstudios.com/api/common/profile/basic_info?user_id=${id}&_=${timestamp}`;
+  if (!sid || !/^\d+$/.test(sid)) {
+    return res.status(400).json({ error: 'Valid numeric StarMaker ID required' });
+  }
 
-        const apiResponse = await fetch(targetUrl, {
-            method: 'GET',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Referer': 'https://www.starmakerstudios.com/'
-            }
-        });
+  try {
+    const response = await fetch(`https://starmaker.id.vn/wp-json/sm-user/v1/lookup?sid=${sid}`);
+    const data = await response.json();
 
-        const resultData = await apiResponse.json();
-
-        // Returning the clean parsed data
-        res.status(200).json({
-            success: true,
-            query_id: id,
-            data: resultData
-        });
-
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: "Failed to fetch profile details", 
-            details: error.message 
-        });
-    }
+    // Yahan aap JSON response ki keys ke hisab se data customize kar sakte hain
+    res.status(response.status).json({
+      success: true,
+      user_id: sid,
+      country: data.country || data.region || data.location || "Not found in API",
+      last_update: data.updated_at || data.last_update || data.time || "Not found in API",
+      family_info: data.family || data.family_info || "Not found",
+      raw_data: data // Sara raw data dekhne ke liye
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch data', details: err.message });
+  }
 });
 
-// Root check route
 app.get('/', (req, res) => {
-    res.json({ message: "StarMaker Fresh API is running successfully!" });
+  res.send('StarMaker API is running');
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
