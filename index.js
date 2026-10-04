@@ -14,16 +14,26 @@ app.get('/api/lookup', async (req, res) => {
 
   try {
     const response = await fetch(`https://starmaker.id.vn/wp-json/sm-user/v1/lookup?sid=${sid}`);
-    const data = await response.json();
+    const result = await response.json();
 
-    // Yahan aap JSON response ki keys ke hisab se data customize kar sakte hain
+    // Screenshot ke mutabiq exact keys extract kar rahe hain
+    const userData = result?.data?.user || {};
+    const familyData = result?.data?.family || {};
+
     res.status(response.status).json({
       success: true,
       user_id: sid,
-      country: data.country || data.region || data.location || "Not found in API",
-      last_update: data.updated_at || data.last_update || data.time || "Not found in API",
-      family_info: data.family || data.family_info || "Not found",
-      raw_data: data // Sara raw data dekhne ke liye
+      name: userData.name || "N/A",
+      stage_name: userData.stage_name || "N/A",
+      country: familyData.country || userData.country || "Not Available",
+      last_update: userData.updated_date || userData.created_on || "N/A",
+      family_info: {
+        family_id: familyData.id || "N/A",
+        family_name: familyData.name || "N/A",
+        family_country: familyData.country || "N/A",
+        family_created_date: familyData.created_date || "N/A"
+      },
+      raw_data: result
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch data', details: err.message });
