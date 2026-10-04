@@ -17,21 +17,16 @@ app.get('/api/lookup', async (req, res) => {
     const result = await response.json();
 
     const userData = result?.data?.user || {};
-    const familyData = result?.data?.family || {};
 
     res.status(response.status).json({
       success: true,
       user_id: sid,
       name: userData.name || "N/A",
-      // Yahan hum multiple possibilities check kar rahe hain country ke liye
-      country: userData.country || userData.region || familyData.country || "Not Found in API",
-      // Last update ke liye updated_date ya timestamp ki field
-      last_update: userData.updated_date || userData.last_update || userData.rts || "Not Found in API",
-      family_info: {
-        family_id: familyData.id || "N/A",
-        family_name: familyData.name || "N/A",
-        family_country: familyData.country || "N/A"
-      },
+      // Device aur registration details agar API me hongi toh yahan catch ho jayengi
+      registration_method: userData.register_type || userData.reg_method || userData.source || "N/A",
+      last_device: userData.device || userData.last_device || userData.phone_model || "N/A",
+      created_on: userData.created_on || "N/A",
+      updated_date: userData.updated_date || "N/A",
       raw_data: result
     });
   } catch (err) {
